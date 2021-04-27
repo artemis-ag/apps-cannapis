@@ -261,9 +261,15 @@ module MetrcService
         when :flowering
           true
         when :drying
-          raise InvalidAttributes, "Missing wet weight output for move completion #{current_completion.id} when moving to Dry" unless move_harvest
+          unless move_harvest
+            Bugsnag.notify("Missing wet weight output for move completion #{current_completion.id} when moving to Dry") do |notification|
+              notification.add_tab(:completion, current_completion)
+            end
+          end
         else
-          raise InvalidAttributes, "#{growth_phase} is not a valid growth phase for the state of #{@integration.state}"
+          Bugsnag.notify("Invalid growth phase #{growth_phase} for move completion #{current_completion.id} in the state of #{@integration.state}") do |notification|
+            notification.add_tab(:completion, current_completion)
+          end
         end
       end
 
